@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>🕉️ Kumbh Mela Nashik — Live Map</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: 'Segoe UI', sans-serif; background: #0d1117; color: #e6edf3; }
+  #header {
+    background: linear-gradient(135deg, #FF6B35, #F7931E, #FFD700);
+    padding: 12px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 2px 10px rgba(255,107,53,0.4);
+  }
+  #header h1 { font-size: 18px; color: #1a0a00; font-weight: 700; }
+  #header .subtitle { font-size: 12px; color: #3a1a00; }
+  #filter-bar {
+    background: #161b22;
+    padding: 10px 16px;
+    display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+    border-bottom: 1px solid #30363d;
+  }
+  .filter-btn {
+    padding: 6px 14px; border-radius: 20px; border: 1.5px solid #30363d;
+    background: #21262d; color: #e6edf3; cursor: pointer; font-size: 12px;
+    transition: all 0.2s; font-weight: 500;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    border-color: #FFD700; background: #FFD70022; color: #FFD700;
+  }
+  #map { height: calc(100vh - 150px); width: 100%; }
+  .voice-btn {
+    position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+    width: 60px; height: 60px; border-radius: 50%;
+    background: linear-gradient(135deg, #FF6B35, #FFD700);
+    border: none; cursor: pointer; font-size: 26px;
+    box-shadow: 0 4px 20px rgba(255,107,53,0.5);
+    transition: transform 0.2s;
+  }
+  .voice-btn:hover { transform: scale(1.1); }
+  .voice-btn.listening { animation: pulse 1s infinite; }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(255,107,53,0.7); }
+    70% { box-shadow: 0 0 0 16px rgba(255,107,53,0); }
+    100% { box-shadow: 0 0 0 0 rgba(255,107,53,0); }
+  }
+  #voice-output {
+    position: fixed; bottom: 96px; right: 16px; z-index: 9998;
+    background: #21262d; border: 1px solid #30363d; border-radius: 12px;
+    padding: 12px 16px; max-width: 280px; font-size: 13px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4); display: none;
+  }
+  .leaflet-popup-content-wrapper {
+    background: #21262d; color: #e6edf3; border: 1px solid #30363d;
+    border-radius: 10px;
+  }
+  .leaflet-popup-tip { background: #21262d; }
+  .popup-title { font-size: 14px; font-weight: 700; color: #FFD700; margin-bottom: 4px; }
+  .popup-info { font-size: 12px; color: #8b949e; margin-bottom: 6px; }
+  .popup-nav {
+    display: inline-block; padding: 5px 12px; background: #FF6B35;
+    color: white; border-radius: 8px; font-size: 11px; font-weight: 600;
+    text-decoration: none; margin-top: 4px;
+  }
+  #locate-btn {
+    padding: 6px 14px; border-radius: 20px;
+    background: linear-gradient(90deg, #FF6B35, #FFD700);
+    border: none; color: #1a0a00; cursor: pointer; font-size: 12px; font-weight: 700;
+  }
+</style>
+</head>
+<body>
+<div id="header">
+  <div>
+    <div><h1>🕉️ कुंभ मेळा नाशिक — Live Map</h1></div>
+    <div class="subtitle">Ramkund · Panchvati · Shahi Snan 2027</div>
+  </div>
+  <div style="font-size:22px;">📿</div>
+</div>
+<div id="filter-bar">
+  <button class="filter-btn active" onclick="filterMarkers('all')">🗺️ All</button>
+  <button class="filter-btn" onclick="filterMarkers('ghats')">🏊 Ghats</button>
+  <button class="filter-btn" onclick="filterMarkers('hospitals')">🏥 Hospital</button>
+  <button class="filter-btn" onclick="filterMarkers('food')">🍱 Food</button>
+  <button class="filter-btn" onclick="filterMarkers('accommodation')">🏠 Stay</button>
+  <button class="filter-btn" onclick="filterMarkers('police')">👮 Police</button>
+  <button class="filter-btn" onclick="filterMarkers('transport')">🚌 Transport</button>
+  <button id="locate-btn" onclick="locateMe()">📍 माझं Location</button>
+</div>
+<div id="map"></div>
+<div id="voice-output"></div>
+<button class="voice-btn" id="voiceBtn" onclick="startVoice()" title="Voice Assistant">🎙️</button>
+
+<script>
+const markersData = [{"name": "Ramkund Ghat", "lat": 20.0059, "lon": 73.7898, "icon": "🏊", "color": "#1565C0", "info": "Most sacred — Lord Ram bathed here", "category": "ghats"}, {"name": "Sita Gufa Ghat", "lat": 20.0061, "lon": 73.7885, "icon": "🕌", "color": "#1565C0", "info": "Sita's cave during exile", "category": "ghats"}, {"name": "Panchvati Ghat", "lat": 20.0065, "lon": 73.788, "icon": "🌳", "color": "#1565C0", "info": "5 sacred peepal trees", "category": "ghats"}, {"name": "Holkar Bridge Ghat", "lat": 20.0045, "lon": 73.791, "icon": "🏊", "color": "#1565C0", "info": "Wide ghat, good for families", "category": "ghats"}, {"name": "Tapkeshwar Ghat", "lat": 20.007, "lon": 73.787, "icon": "🕍", "color": "#1565C0", "info": "Shiva cave temple", "category": "ghats"}, {"name": "Makhmalabad Ghat", "lat": 20.003, "lon": 73.795, "icon": "🏊", "color": "#1565C0", "info": "Quieter ghat", "category": "ghats"}, {"name": "District Civil Hospital", "lat": 20.012, "lon": 73.789, "icon": "🏥", "color": "#C62828", "info": "24x7 Emergency — 0253-2453011", "category": "hospitals"}, {"name": "Kumbh Medical Camp (Ramkund)", "lat": 20.0058, "lon": 73.79, "icon": "⛺", "color": "#C62828", "info": "FREE camp — ORS, first aid", "category": "hospitals"}, {"name": "Kumbh Medical Camp (Panchvati)", "lat": 20.0064, "lon": 73.7882, "icon": "⛺", "color": "#C62828", "info": "FREE — Doctor 6am-10pm", "category": "hospitals"}, {"name": "Langar (Ramkund Akhara)", "lat": 20.0055, "lon": 73.7902, "icon": "🍱", "color": "#2E7D32", "info": "FREE meals all day", "category": "food"}, {"name": "Misal Pav Corner", "lat": 20.006, "lon": 73.7888, "icon": "🌶️", "color": "#2E7D32", "info": "Famous Nashik Misal ₹50-80", "category": "food"}, {"name": "Gurudwara Langar", "lat": 20.0075, "lon": 73.7865, "icon": "🙏", "color": "#2E7D32", "info": "FREE Sikh langar 24 hours", "category": "food"}, {"name": "Panchvati Dhaba Row", "lat": 20.0063, "lon": 73.7879, "icon": "🍽️", "color": "#2E7D32", "info": "Veg Maharashtrian ₹60-200", "category": "food"}, {"name": "Ram Mandir Dharamshala", "lat": 20.0057, "lon": 73.7895, "icon": "🏠", "color": "#6A1B9A", "info": "Free/₹100 per night", "category": "accommodation"}, {"name": "Panchvati Lodge", "lat": 20.0062, "lon": 73.7878, "icon": "🏨", "color": "#6A1B9A", "info": "₹200-500/night", "category": "accommodation"}, {"name": "MTDC Resort", "lat": 20.015, "lon": 73.78, "icon": "🏩", "color": "#6A1B9A", "info": "Premium ₹2000+/night", "category": "accommodation"}, {"name": "Govt Tent City", "lat": 20.004, "lon": 73.792, "icon": "⛺", "color": "#6A1B9A", "info": "₹300-800/night Kumbh special", "category": "accommodation"}, {"name": "Ramkund Police Chowky", "lat": 20.0056, "lon": 73.7896, "icon": "👮", "color": "#E65100", "info": "24x7 — Emergency: 100", "category": "police"}, {"name": "Panchvati Police Post", "lat": 20.0066, "lon": 73.7877, "icon": "👮", "color": "#E65100", "info": "Women helpline: 1091", "category": "police"}, {"name": "Kumbh Control Room", "lat": 20.005, "lon": 73.7905, "icon": "🎯", "color": "#E65100", "info": "Missing persons coordination", "category": "police"}, {"name": "Nashik Road Railway Station", "lat": 19.996, "lon": 73.819, "icon": "🚂", "color": "#00695C", "info": "8km — Shuttle every 15 mins", "category": "transport"}, {"name": "CBS Bus Stand", "lat": 20.01, "lon": 73.783, "icon": "🚌", "color": "#00695C", "info": "MSRTC all Maharashtra", "category": "transport"}, {"name": "Kumbh Shuttle Stop", "lat": 20.0053, "lon": 73.7907, "icon": "🚐", "color": "#00695C", "info": "Free shuttle to railway station", "category": "transport"}];
+let map, allLayers = [], userMarker = null;
+
+// Init map centered on Ramkund
+map = L.map('map').setView([20.0059, 73.7898], 15);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap', maxZoom: 19
+}).addTo(map);
+
+// Create markers
+markersData.forEach(p => {
+  const icon = L.divIcon({
+    html: `<div style="font-size:22px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5))">${p.icon}</div>`,
+    className: '', iconSize: [30, 30], iconAnchor: [15, 15]
+  });
+  const marker = L.marker([p.lat, p.lon], {icon}).addTo(map);
+  const navUrl = `https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lon}`;
+  marker.bindPopup(`
+    <div class="popup-title">${p.icon} ${p.name}</div>
+    <div class="popup-info">${p.info}</div>
+    <a class="popup-nav" href="${navUrl}" target="_blank">🗺️ Navigate</a>
+  `);
+  marker._category = p.category;
+  marker._name = p.name;
+  allLayers.push(marker);
+});
+
+function filterMarkers(cat) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  allLayers.forEach(m => {
+    if (cat === 'all' || m._category === cat) map.addLayer(m);
+    else map.removeLayer(m);
+  });
+}
+
+function locateMe() {
+  if (!navigator.geolocation) return alert('Geolocation not supported');
+  navigator.geolocation.getCurrentPosition(pos => {
+    const lat = pos.coords.latitude, lon = pos.coords.longitude;
+    if (userMarker) map.removeLayer(userMarker);
+    userMarker = L.marker([lat, lon], {
+      icon: L.divIcon({html:'<div style="font-size:28px">📍</div>', className:'', iconSize:[30,30], iconAnchor:[15,15]})
+    }).addTo(map).bindPopup('📍 तुम्ही इथे आहात!').openPopup();
+    map.setView([lat, lon], 16);
+    showVoiceOutput(`📍 Location मिळाली! तुमच्या जवळचे Ghats, Hospitals, Food दाखवत आहे...`);
+  }, () => {
+    // Demo fallback — show near Ramkund
+    map.setView([20.0059, 73.7898], 16);
+    showVoiceOutput('📍 Demo: Ramkund location वर map center केला!');
+  });
+}
+
+function showVoiceOutput(text) {
+  const el = document.getElementById('voice-output');
+  el.style.display = 'block';
+  el.innerHTML = `<strong>🤖 Assistant:</strong><br>${text}`;
+  setTimeout(() => el.style.display = 'none', 6000);
+}
+
+function startVoice() {
+  const btn = document.getElementById('voiceBtn');
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    showVoiceOutput('🎙️ Voice: Chrome browser madhe best kaam karto! Demo mode: Ramkund Ghat dikhavtoy...');
+    const r = allLayers.find(m => m._name === 'Ramkund Ghat');
+    if (r) { map.setView(r.getLatLng(), 17); r.openPopup(); }
+    return;
+  }
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const rec = new SR();
+  rec.lang = 'hi-IN';
+  rec.start();
+  btn.classList.add('listening');
+  btn.textContent = '⏺️';
+  showVoiceOutput('🎙️ Bola... (Hindi/Marathi/English)');
+  rec.onresult = e => {
+    const text = e.results[0][0].transcript.toLowerCase();
+    btn.classList.remove('listening'); btn.textContent = '🎙️';
+    handleVoiceQuery(text);
+  };
+  rec.onerror = () => { btn.classList.remove('listening'); btn.textContent = '🎙️'; };
+}
+
+const VOICE_MAP = {
+  'hospital': 'hospitals', 'रुग्णालय': 'hospitals', 'ambulance': 'hospitals', 'medical': 'hospitals',
+  'ghat': 'ghats', 'घाट': 'ghats', 'ramkund': 'ghats', 'रामकुंड': 'ghats', 'snan': 'ghats',
+  'food': 'food', 'खाणे': 'food', 'jevo': 'food', 'langar': 'food', 'misal': 'food', 'भोजन': 'food',
+  'hotel': 'accommodation', 'stay': 'accommodation', 'dharamshala': 'accommodation', 'राहणे': 'accommodation',
+  'police': 'police', 'पोलीस': 'police', 'lost': 'police', 'missing': 'police',
+  'bus': 'transport', 'train': 'transport', 'railway': 'transport', 'रेल्वे': 'transport',
+};
+
+function handleVoiceQuery(text) {
+  let cat = 'all';
+  for (const [kw, c] of Object.entries(VOICE_MAP)) {
+    if (text.includes(kw)) { cat = c; break; }
+  }
+  filterMarkers(cat);
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    if (b.textContent.toLowerCase().includes(cat) || cat === 'all' && b.textContent.includes('All'))
+      b.classList.add('active');
+    else b.classList.remove('active');
+  });
+  const names = allLayers.filter(m => cat==='all' || m._category===cat).map(m=>m._name).slice(0,3);
+  showVoiceOutput(`🔍 "${text}" → ${cat.toUpperCase()} दाखवत आहे:<br>${names.join('<br>')}`);
+  if (cat !== 'all') {
+    const first = allLayers.find(m => m._category === cat);
+    if (first) { map.setView(first.getLatLng(), 16); first.openPopup(); }
+  }
+}
+</script>
+</body>
+</html>

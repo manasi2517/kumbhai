@@ -1,0 +1,47 @@
+{
+  "agent_tag": "manasi17.kumbh_mela_nashik",
+  "name": "Kumbh Mela Nashik Assistant",
+  "alias": "kumbh_mela_nashik",
+  "owner": "manasi17",
+  "languages_supported": [
+    "hi",
+    "mr",
+    "en",
+    "gu",
+    "bn",
+    "ta",
+    "te",
+    "kn",
+    "pa",
+    "ur"
+  ],
+  "skills": [
+    {
+      "name": "language-detector",
+      "file": "custom_skills/language_detector.py"
+    },
+    {
+      "name": "kumbh-info",
+      "file": "custom_skills/kumbh_info.py"
+    },
+    {
+      "name": "nearby-places",
+      "file": "custom_skills/nearby_places.py"
+    }
+  ],
+  "topics": [
+    "ghats",
+    "shahi_snan",
+    "transport",
+    "accommodation",
+    "emergency",
+    "rituals",
+    "lost_found",
+    "food",
+    "weather",
+    "medical"
+  ],
+  "offline_support": true,
+  "offline_model": "offline_model/kumbh_offline_assistant.py",
+  "live_map": "map/kumbh_live_map.html"
+}

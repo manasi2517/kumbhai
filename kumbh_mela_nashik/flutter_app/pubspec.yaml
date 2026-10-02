@@ -1,0 +1,47 @@
+name: kumbh_mela_nashik
+description: 🕉️ Official Kumbh Mela Nashik Voice & Chat Assistant App
+version: 1.0.0+1
+publish_to: 'none'
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # HTTP & API
+  http: ^1.2.0
+  # Map
+  flutter_map: ^6.1.0
+  latlong2: ^0.9.0
+  # GPS
+  geolocator: ^11.0.0
+  # ── WebRTC Audio Capture (replaces speech_to_text) ──
+  flutter_sound: ^9.2.13        # WebRTC-quality audio recording
+  path_provider: ^2.1.2         # Temp file for WAV
+  # Offline Voice (Vosk — Hindi/Marathi)
+  # vosk_flutter: ^0.3.0        # Uncomment when Vosk model bundled (~40MB)
+  # TTS (multilingual output)
+  flutter_tts: ^3.8.5
+  # Connectivity (online/offline detect)
+  connectivity_plus: ^5.0.2
+  # Permissions
+  permission_handler: ^11.3.0
+  # URL Launcher (Google Maps)
+  url_launcher: ^6.2.5
+  # UI
+  cupertino_icons: ^1.0.6
+  google_fonts: ^6.1.0
+  # Local Storage
+  shared_preferences: ^2.2.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/data/kumbh_knowledge.json
+    - assets/data/locations.json

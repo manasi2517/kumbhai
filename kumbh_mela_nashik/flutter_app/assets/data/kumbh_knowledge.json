@@ -1,0 +1,32 @@
+{
+  "ghats": {
+    "en": "🏊 Main Ghats: Ramkund (holiest — Lord Ram bathed here), Sita Gufa, Tapkeshwar, Panchvati, Holkar Bridge, Makhmalabad. Best time: 4am–8am.",
+    "hi": "🏊 मुख्य घाट: रामकुंड (सबसे पवित्र), सीता गुफा, तपकेश्वर, पंचवटी, होलकर ब्रिज। सुबह 4-8 बजे सबसे अच्छा समय।",
+    "mr": "🏊 मुख्य घाट: रामकुंड (सर्वात पवित्र), सीता गुफा, तपकेश्वर, पंचवटी, होळकर ब्रिज. सकाळी 4-8 वाजता सर्वोत्तम वेळ."
+  },
+  "emergency": {
+    "en": "🚨 Police: 100 | Ambulance: 108 | Fire: 101 | Hospital: 0253-2453011 | Child: 1098",
+    "hi": "🚨 पुलिस: 100 | एम्बुलेंस: 108 | अग्निशमन: 101 | अस्पताल: 0253-2453011 | चाइल्ड हेल्पलाइन: 1098",
+    "mr": "🚨 पोलीस: 100 | रुग्णवाहिका: 108 | अग्निशमन: 101 | रुग्णालय: 0253-2453011 | बाल हेल्पलाइन: 1098"
+  },
+  "transport": {
+    "en": "🚂 Train: Nashik Road Station (8km). Bus: CBS Stand. Kumbh Shuttle: every 15 mins to Ramkund.",
+    "hi": "🚂 ट्रेन: नासिक रोड स्टेशन (8 किमी). बस: CBS स्टैंड. कुंभ शटल: हर 15 मिनट।",
+    "mr": "🚂 रेल्वे: नाशिक रोड स्टेशन (8 किमी). बस: CBS. कुंभ शटल: दर 15 मिनिटांनी."
+  },
+  "accommodation": {
+    "en": "🏠 Dharamshalas near Ramkund (free/₹100). Govt Tent City during Kumbh. Hotels on Trimbak Road. MTDC Resort.",
+    "hi": "🏠 धर्मशालाएं (मुफ्त/₹100). सरकारी टेंट सिटी. त्र्यंबक रोड होटल. MTDC रिसॉर्ट।",
+    "mr": "🏠 धर्मशाळा (मोफत/₹100). सरकारी तंबू शहर. त्र्यंबक रोड हॉटेल. MTDC रिसॉर्ट."
+  },
+  "food": {
+    "en": "🍱 Free langar by akharas. Local: Misal Pav ₹50, Sabudana Khichdi, Puran Poli. Many dhabas near Ramkund.",
+    "hi": "🍱 अखाड़ों का मुफ्त लंगर. स्थानीय: मिसल पाव ₹50, साबूदाना खिचड़ी, पुरण पोली.",
+    "mr": "🍱 आखाड्यांचे मोफत लंगर. स्थानिक: मिसळ पाव ₹50, साबुदाणा खिचडी, पुरण पोळी."
+  },
+  "rituals": {
+    "en": "🙏 Holy dip at Ramkund → Trimbakeshwar Jyotirlinga (28km) → Panchvati → Kalaram Temple → Saptashringi Devi (60km).",
+    "hi": "🙏 रामकुंड स्नान → त्र्यंबकेश्वर (28 किमी) → पंचवटी → कालाराम मंदिर → सप्तशृंगी देवी (60 किमी)।",
+    "mr": "🙏 रामकुंड स्नान → त्र्यंबकेश्वर (28 किमी) → पंचवटी → काळाराम मंदिर → सप्तशृंगी देवी (60 किमी)."
+  }
+}

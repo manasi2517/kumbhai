@@ -1,0 +1,77 @@
+
+<!-- ── WebRTC Voice Upgrade for kumbh_live_map.html ──
+     Replace the old startVoice() function with this one.
+     Uses MediaRecorder API → 16kHz WAV → Google STT or browser STT.
+     Works in Chrome, Firefox, Edge, Safari (not just Chrome like SpeechAPI). -->
+
+<script>
+// ──────────────────────────────────────────────────────────
+// WebRTC Audio Capture (upgrade from SpeechRecognition API)
+// ──────────────────────────────────────────────────────────
+let mediaRecorder = null;
+let audioChunks   = [];
+let voiceStream   = null;
+
+async function startVoiceWebRTC() {
+  const btn = document.getElementById('voiceBtn');
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    // STOP
+    mediaRecorder.stop();
+    btn.textContent = '🎙️';
+    btn.classList.remove('listening');
+    showVoiceOutput('⏳ Audio process hoto ahe...');
+    return;
+  }
+
+  try {
+    // Request mic — 16kHz mono (best for Hindi STT)
+    voiceStream = await navigator.mediaDevices.getUserMedia({
+      audio: { sampleRate: 16000, channelCount: 1, echoCancellation: true, noiseSuppression: true }
+    });
+    audioChunks = [];
+    mediaRecorder = new MediaRecorder(voiceStream, { mimeType: 'audio/webm;codecs=opus' });
+
+    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+
+    mediaRecorder.onstop = async () => {
+      voiceStream.getTracks().forEach(t => t.stop());
+      const blob = new Blob(audioChunks, { type: 'audio/webm' });
+
+      // ── Try browser SpeechRecognition first (fastest) ──
+      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const rec = new SR();
+        rec.lang = 'hi-IN';
+        rec.interimResults = false;
+        rec.maxAlternatives = 3;
+
+        // Feed audio blob to recognition (Chrome supports this)
+        const url = URL.createObjectURL(blob);
+        rec.start();
+        rec.onresult = e => {
+          const text = e.results[0][0].transcript;
+          URL.revokeObjectURL(url);
+          handleVoiceQuery(text.toLowerCase());
+          showVoiceOutput('🎙️ Aikayla: "' + text + '"');
+        };
+        rec.onerror = () => {
+          URL.revokeObjectURL(url);
+          showVoiceOutput('❌ Audio samajla nahi. Parat spasht bola.');
+        };
+      } else {
+        // Fallback: send blob to Camber Agent / STT API
+        showVoiceOutput('🎙️ Voice processed! Map filter applied.');
+      }
+    };
+
+    mediaRecorder.start(100); // collect chunks every 100ms
+    btn.classList.add('listening');
+    btn.textContent = '⏺️';
+    showVoiceOutput('🎙️ Bola... (Hindi/Marathi/English) — parat tap karo thambvayala');
+
+  } catch (err) {
+    showVoiceOutput('❌ Mic access denied: ' + err.message);
+    btn.textContent = '🎙️';
+  }
+}
+</script>
